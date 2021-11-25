@@ -9,6 +9,7 @@ public class Client implements Runnable {
 	private Socket client;
 	private BufferedReader in;
 	private PrintWriter out;
+	private UserInterface UI = new UserInterface();
 
 	public void shutDown() {
 		try {
@@ -35,7 +36,7 @@ public class Client implements Runnable {
 
 			String inMessage;
 			while ((inMessage = in.readLine()) != null) {
-				System.out.println(inMessage);
+				UI.printMessage(inMessage);
 			}
 		} catch (IOException e) {
 			// TODO: handle exception
@@ -48,13 +49,17 @@ public class Client implements Runnable {
 		@Override
 		public void run() {
 			try {
-				BufferedReader inReader = new BufferedReader(new InputStreamReader(System.in));
 				while (true) {
-					String message = inReader.readLine();
-					out.println(message);
-					if (message.equals("/quit")) {
-						inReader.close();
-						shutDown();
+					BufferedReader inReader = new BufferedReader(new InputStreamReader(UI.in));
+					String message;
+
+					if ((message = inReader.readLine()) != null) {
+						out.println(message);
+						if (message.equals("/quit")) {
+							inReader.close();
+							shutDown();
+							System.exit(0);
+						}
 					}
 
 				}

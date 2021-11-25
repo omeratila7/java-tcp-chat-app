@@ -12,12 +12,12 @@ public class Server implements Runnable {
 
 	private ArrayList<ConnectionHandler> connections;
 	private ServerSocket server;
-	private boolean serverFull;
+	private boolean serverClosed;
 	private ExecutorService threadPool;
 
 	public Server() {
 		connections = new ArrayList<>();
-		serverFull = false;
+		serverClosed = false;
 	}
 
 	public void broadcastMessage(String message) {
@@ -44,7 +44,7 @@ public class Server implements Runnable {
 		try {
 			server = new ServerSocket(9999);
 			threadPool = Executors.newCachedThreadPool();
-			while (!serverFull) {
+			while (!serverClosed) {
 				Socket client = server.accept();
 				ConnectionHandler handler = new ConnectionHandler(client);
 				connections.add(handler);
@@ -69,6 +69,8 @@ public class Server implements Runnable {
 
 		public void shutdown() {
 			try {
+				broadcastMessage(nickname + " left room");
+				System.out.println(nickname + " left room");
 				in.close();
 				out.close();
 				client.close();
@@ -91,8 +93,10 @@ public class Server implements Runnable {
 				do {
 					nickname = in.readLine();
 				} while (nickname.isBlank());
+
 				System.out.println(nickname + " is connected");
 				broadcastMessage(nickname + " joined chatroom");
+
 				String message;
 
 				while ((message = in.readLine()) != null) {
@@ -100,7 +104,8 @@ public class Server implements Runnable {
 						shutdown();
 						// TODO: handle commands
 					} else {
-						broadcastMessage(nickname+": "+ message);
+						broadcastMessage(nickname + ": " + message);
+						System.out.println(nickname + ": " + message);
 					}
 				}
 			} catch (IOException e) {
@@ -110,7 +115,6 @@ public class Server implements Runnable {
 
 	}
 
-	
 	public static void main(String[] args) {
 		System.out.println("server");
 		Server server = new Server();
